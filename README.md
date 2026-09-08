@@ -36,3 +36,40 @@ Pada langkah terakhir **Lampiran**, tersedia tombol **Masukkan Data Tanda Tangan
 - NIP Guru
 
 Data disimpan di browser dan otomatis ditampilkan pada area tanda tangan di preview modul serta ikut tersimpan ketika modul disimpan. Area tanda tangan dibuat kosong agar dokumen dapat dicetak dan ditandatangani secara manual.
+
+## V7 — Paket Perangkat Ajar Pembelajaran Mendalam
+
+Versi ini memperluas generator perangkat agar hasil lebih lengkap dan saling terhubung.
+
+### Rantai kurikulum
+- CP: elemen/kompetensi, pemetaan, bukti ketercapaian, sumber.
+- TP: tujuan terukur, indikator, asesmen, alokasi.
+- ATP: urutan TP dari prasyarat → penerapan → refleksi/pengayaan.
+- Program Semester (PROMES): minggu efektif, materi/TP, JP, kegiatan, asesmen, catatan.
+- Program Tahunan (PROTA): distribusi Ganjil/Genap, minggu efektif, JP, ruang lingkup, catatan kalender.
+
+### Modul Ajar Pembelajaran Mendalam
+Generator 10 bagian sekarang meminta konten yang lebih lengkap:
+- Identitas dan kompetensi awal
+- CP, TP, ATP yang terhubung
+- Pembelajaran Mendalam: berkesadaran, bermakna, menggembirakan
+- Memahami → Mengaplikasi → Merefleksi
+- 8 dimensi profil lulusan
+- Diferensiasi konten/proses/produk
+- Model pembelajaran otomatis
+- Langkah pembelajaran rinci dan alokasi waktu
+- Asesmen diagnostik, formatif, sumatif
+- Kisi-kisi, instrumen, kunci/pedoman penskoran
+- Rubrik 4 tingkat dan KKTP
+- LKPD
+- Bahan ajar/ringkasan materi
+- Remedial dan pengayaan
+- Refleksi siswa dan guru
+- Glosarium dan daftar pustaka
+- Halaman pengesahan/tanda tangan kepala sekolah dan guru
+
+### Paket Lengkap
+Tombol **Paket Lengkap / Generate Semua Perangkat** membuat rantai CP → TP → ATP → PROMES → PROTA lalu membuat Modul Ajar berdasarkan seluruh rantai tersebut.
+
+### Sumber Internet + AI
+Jika `OPENAI_API_KEY` tersedia, generator menggunakan web search melalui OpenAI dan membatasi sumber normatif utama pada domain pendidikan pemerintah. Hasil tetap harus diverifikasi guru sebelum menjadi dokumen resmi sekolah.

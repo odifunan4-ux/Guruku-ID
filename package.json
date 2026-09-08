@@ -1,8 +1,19 @@
 {
-  "name": "pusat-administrasi-guru-v5-modern",
-  "version": "5.0.0",
+  "name": "pusat-administrasi-guru-v3",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
-  "scripts": {"start":"node backend/server.js","dev":"node --watch backend/server.js"},
-  "dependencies": {"bcryptjs":"^3.0.0","cors":"^2.8.5","dotenv":"^16.6.1","express":"^5.1.0","jsonwebtoken":"^9.0.0","pg":"^8.16.0","openai":"^5.0.0"}
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "openai": "^5.0.0"
+  }
 }

@@ -1,23 +1,38 @@
-# Pusat Administrasi Guru V5 — Modern
+# Pusat Administrasi Guru V6 — Modern A4/F4 + AI Internet
 
-Versi baru yang dibuat sebagai proyek terpisah dari V3/V4. Fokus utama:
+V6 menambahkan generator Modul Ajar 10 bagian otomatis.
 
-- UI/UX modern dengan identitas visual teal.
-- Program Tahunan (PROTA) dan Program Semester (PROMES) dengan editor tabel.
-- CP, TP, ATP dengan generator backend yang tetap kompatibel.
-- Modul Ajar 10 langkah dengan preview langsung.
-- Ukuran dokumen global A4 (21 × 29,7 cm) dan F4/Folio (21 × 33 cm).
-- Print browser dan ekspor Word HTML.
-- Penyimpanan lokal untuk pengembangan/offline.
-- Backend API lama dipertahankan agar integrasi database dan AI dapat dilanjutkan.
+## 10 bagian
+1. Identitas
+2. Capaian Pembelajaran (CP)
+3. Tujuan Pembelajaran (TP)
+4. Alur Tujuan Pembelajaran (ATP)
+5. Profil Pelajar Pancasila/karakter
+6. Sarana & Prasarana
+7. Model Pembelajaran
+8. Langkah Pembelajaran
+9. Asesmen
+10. Lampiran (LKPD, bahan ajar, rubrik, daftar pustaka)
 
-## Jalankan
+## Internet + AI
+Endpoint `/api/generate-module-sections` menggunakan OpenAI Responses API + web search jika `OPENAI_API_KEY` tersedia. Sumber web dibatasi ke domain pendidikan resmi: `kemdikbud.go.id`, `kemendikdasmen.go.id`, `kurikulum.kemdikbud.go.id`, dan `rumah.pendidikan.go.id`.
 
-```bash
-npm install
-npm start
+Jika API key belum diatur, aplikasi memakai generator lokal sehingga UI tetap dapat dicoba.
+
+Set `.env` di backend:
+```
+OPENAI_API_KEY=...
+OPENAI_MODEL=...
 ```
 
-Buka `http://localhost:3000`.
+Jangan menaruh API key di frontend.
 
-Untuk generator AI/Internet, salin `backend/.env.example` menjadi `.env` dan isi `OPENAI_API_KEY` sesuai kebutuhan deployment.
+## Tanda Tangan Modul Ajar
+Pada langkah terakhir **Lampiran**, tersedia tombol **Masukkan Data Tanda Tangan**. Guru dapat mengisi:
+- Tanggal Modul
+- Nama Kepala Sekolah
+- NIP Kepala Sekolah
+- Nama Guru
+- NIP Guru
+
+Data disimpan di browser dan otomatis ditampilkan pada area tanda tangan di preview modul serta ikut tersimpan ketika modul disimpan. Area tanda tangan dibuat kosong agar dokumen dapat dicetak dan ditandatangani secara manual.

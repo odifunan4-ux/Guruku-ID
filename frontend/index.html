@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f766e"><title>Pusat Administrasi Guru — V5</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-logo">AG</div><div><strong>Administrasi Guru</strong><span>Workspace V5</span></div>
+    </div>
+    <div class="school-mini"><div class="school-dot">S</div><div><b id="schoolNameSide">Sekolah Anda</b><small id="schoolMetaSide">2026/2027 · Ganjil</small></div></div>
+    <nav id="nav">
+      <div class="nav-label">UTAMA</div>
+      <button class="nav-item active" data-page="dashboard"><span class="ico">⌂</span>Beranda</button>
+      <div class="nav-label">KURIKULUM</div>
+      <button class="nav-item" data-page="prota"><span class="ico">01</span>Program Tahunan</button>
+      <button class="nav-item" data-page="promes"><span class="ico">02</span>Program Semester</button>
+      <button class="nav-item" data-page="curriculum"><span class="ico">03</span>CP · TP · ATP</button>
+      <div class="nav-label">PERANGKAT AJAR</div>
+      <button class="nav-item" data-page="modul"><span class="ico">04</span>Modul Ajar</button>
+      <button class="nav-item" data-page="documents"><span class="ico">▤</span>Dokumen Saya</button>
+      <button class="nav-item" data-page="materials"><span class="ico">◈</span>Bab & Materi</button>
+      <div class="nav-label">KELAS</div>
+      <button class="nav-item" data-page="students"><span class="ico">♙</span>Data Siswa</button>
+      <button class="nav-item" data-page="attendance"><span class="ico">✓</span>Absensi</button>
+      <button class="nav-item" data-page="journal"><span class="ico">≡</span>Jurnal</button>
+      <button class="nav-item" data-page="assessment"><span class="ico">▥</span>Penilaian</button>
+    </nav>
+    <div class="sidebar-bottom"><button class="nav-item" data-page="settings"><span class="ico">⚙</span>Pengaturan</button></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <button class="mobile-menu" id="menuBtn">☰</button>
+      <div class="breadcrumb"><span>Pusat Administrasi</span><b id="crumb">Beranda</b></div>
+      <div class="topbar-right"><span class="save-state" id="syncState">● Tersimpan</span><div class="avatar">AG</div></div>
+    </header>
+    <section class="page-content" id="app"></section>
+  </main>
+</div>
+<div id="toast" class="toast"></div>
+<div id="modal" class="modal hidden"></div>
+<script src="app.js"></script>
+</body>
+</html>

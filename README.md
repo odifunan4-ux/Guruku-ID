@@ -73,3 +73,7 @@ Tombol **Paket Lengkap / Generate Semua Perangkat** membuat rantai CP → TP →
 
 ### Sumber Internet + AI
 Jika `OPENAI_API_KEY` tersedia, generator menggunakan web search melalui OpenAI dan membatasi sumber normatif utama pada domain pendidikan pemerintah. Hasil tetap harus diverifikasi guru sebelum menjadi dokumen resmi sekolah.
+
+## Cetak Modul Ajar
+
+Tombol **Cetak**, **PDF**, dan **Word** pada Modul Ajar menggunakan format dokumen khusus yang meniru struktur contoh: halaman sampul, identifikasi modul, desain pembelajaran (CP/TP/ATP dan komponen Pembelajaran Mendalam), langkah pembelajaran, asesmen, lampiran, lalu halaman pengesahan/tanda tangan. Ukuran kertas: A4 210×297 mm atau F4 210×330 mm. Konten yang telah digenerate dari AI maupun diedit guru akan digunakan sebagai sumber cetak.

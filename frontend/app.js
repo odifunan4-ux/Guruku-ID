@@ -180,53 +180,103 @@ function getPrintPageSize() {
     : { name:'A4', width:'210mm', height:'297mm' };
 }
 
-function getPrintableDocumentHTML() {
-  const editor = document.querySelector('#documentEditor, #editorContent, .document-editor, [contenteditable="true"]');
-  const titleEl = document.querySelector('#documentTitle, #docTitle, input[name="title"]');
-  const title = titleEl?.value || titleEl?.textContent || 'Dokumen Modul Ajar';
-  let content = editor?.innerHTML || document.querySelector('.editor-content')?.innerHTML || '';
-  if (!content.trim()) {
-    const active = document.querySelector('.page.active, .content-page.active, main');
-    content = active?.innerHTML || '<p>Dokumen belum memiliki isi.</p>';
+function sectionText(key, fallback='') {
+  return String(moduleSections?.[key] ?? fallback ?? '').trim();
+}
+
+function formatSectionForPrint(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '<p class="empty-print">Bagian ini belum diisi.</p>';
+  // AI may return HTML. Keep it intact, but strip editor-only controls.
+  if (/<(?:p|div|table|ul|ol|h[1-6]|section|br)\b/i.test(raw)) {
+    const box=document.createElement('div'); box.innerHTML=raw;
+    box.querySelectorAll('button,input,select,textarea,.no-print,.print-hide').forEach(el=>el.remove());
+    return box.innerHTML;
   }
+  // Fallback/local generator returns structured plain text. Convert headings,
+  // numbered lists and bullet lists into clean print HTML.
+  const lines=raw.split(/\r?\n/);
+  let out='', listType=null;
+  const closeList=()=>{if(listType){out+=`</${listType}>`;listType=null;}};
+  for(let line of lines){
+    line=line.trim();
+    if(!line){closeList();continue;}
+    if(/^#{1,4}\s+/.test(line)){
+      closeList(); const m=line.match(/^(#+)\s+(.*)$/); const level=Math.min(4,m[1].length+1); out+=`<h${level}>${escapeHtmlForExport(m[2])}</h${level}>`; continue;
+    }
+    if(/^\*\s+/.test(line) || /^•\s+/.test(line) || /^-\s+/.test(line)){
+      if(listType!=='ul'){closeList();out+='<ul>';listType='ul';}
+      out+=`<li>${escapeHtmlForExport(line.replace(/^(?:\*|•|-)\s+/,'')).replace(/\*([^*]+)\*/g,'<em>$1</em>')}</li>`; continue;
+    }
+    if(/^\d+[.)]\s+/.test(line)){
+      if(listType!=='ol'){closeList();out+='<ol>';listType='ol';}
+      out+=`<li>${escapeHtmlForExport(line.replace(/^\d+[.)]\s+/,''))}</li>`; continue;
+    }
+    closeList();
+    if(/^[A-Z][A-Z0-9 .·&'()/–—:-]{2,70}$/.test(line) || /^(IDENTITAS|CAPAIAN PEMBELAJARAN|TUJUAN PEMBELAJARAN|ALUR TUJUAN PEMBELAJARAN|ASESMEN|LAMPIRAN|SARANA, PRASARANA|LANGKAH PEMBELAJARAN|MODEL PEMBELAJARAN)/i.test(line)){
+      out+=`<h3>${escapeHtmlForExport(line)}</h3>`;
+    } else if(/^(.{1,80}):\s+.+$/.test(line) && !/[.!?]$/.test(line)) {
+      const idx=line.indexOf(':'); out+=`<p><b>${escapeHtmlForExport(line.slice(0,idx+1))}</b>${escapeHtmlForExport(line.slice(idx+1))}</p>`;
+    } else {
+      out+=`<p>${escapeHtmlForExport(line).replace(/\*([^*]+)\*/g,'<em>$1</em>')}</p>`;
+    }
+  }
+  closeList(); return out;
+}
 
-  const tmp = document.createElement('div');
-  tmp.innerHTML = content;
-  tmp.querySelectorAll('button, input, select, textarea, .no-print, .print-hide').forEach(el => el.remove());
+function buildSignaturePrintHTML(){
+  const sig=moduleSignature||{};
+  if(!sig.date && !sig.principalName && !sig.teacherName) return '';
+  const date=sig.date?new Date(sig.date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}):'.................................';
+  return `<section class="print-signature page-break-before">
+    <div class="signature-date">${escapeHtmlForExport(date)}</div>
+    <div class="signature-grid">
+      <div><p>Mengetahui,</p><p><b>Kepala Sekolah</b></p><div class="signature-space"></div><p><b>${escapeHtmlForExport(sig.principalName||'................................................')}</b></p><p>NIP. ${escapeHtmlForExport(sig.principalNip||'................................')}</p></div>
+      <div><p>Guru Mata Pelajaran/Kelas</p><p><b>${escapeHtmlForExport(state.subject)}</b></p><div class="signature-space"></div><p><b>${escapeHtmlForExport(sig.teacherName||'................................................')}</b></p><p>NIP. ${escapeHtmlForExport(sig.teacherNip||'................................')}</p></div>
+    </div>
+  </section>`;
+}
 
+function getPrintableDocumentHTML() {
   const paper = getPrintPageSize();
-
-  return `<!doctype html>
-<html lang="id">
-<head>
-<meta charset="utf-8">
-<title>${escapeHtmlForExport(title)}</title>
-<style>
-@page { size: ${paper.width} ${paper.height}; margin: 18mm 15mm; }
-* { box-sizing:border-box; }
-html,body { margin:0; padding:0; }
-body { font-family: Arial, Helvetica, sans-serif; color:#111; font-size:11pt; line-height:1.45; }
-h1,h2,h3,h4 { page-break-after:avoid; }
-h1 { font-size:18pt; text-align:center; margin:0 0 12pt; }
-h2 { font-size:14pt; margin-top:16pt; border-bottom:1px solid #999; padding-bottom:4pt; }
-h3 { font-size:12pt; margin-top:12pt; }
-p { margin:0 0 7pt; }
-table { width:100%; border-collapse:collapse; margin:8pt 0 12pt; page-break-inside:auto; }
-thead { display:table-header-group; }
-tr { page-break-inside:avoid; }
-th,td { border:1px solid #777; padding:5pt 6pt; vertical-align:top; }
-th { font-weight:700; }
-ul,ol { margin-top:4pt; }
-img { max-width:100%; height:auto; }
-.export-header { text-align:center; margin-bottom:18pt; }
-.export-footer { margin-top:18pt; font-size:9pt; text-align:center; color:#555; }
-</style>
-</head>
-<body>
-<div class="export-header"><h1>${escapeHtmlForExport(title)}</h1></div>
-${tmp.innerHTML}
-<div class="export-footer">Dicetak dari Pusat Administrasi Guru — ${paper.name}</div>
-</body></html>`;
+  const chapter=moduleSections.chapter || document.querySelector('#chapter')?.value || state.subject || 'Materi Pembelajaran';
+  const allocation=document.querySelector('#allocationMinutes')?.value || moduleSections.allocationMinutes || 70;
+  const phase=state.level==='SD'?(Number(state.grade)<=2?'A':Number(state.grade)<=4?'B':'C'):state.level==='SMP'?'D':'E/F';
+  const title='MODUL AJAR';
+  const sections=[
+    ['I. IDENTIFIKASI MODUL','identitas'],
+    ['II. DESAIN PEMBELAJARAN','cp'],
+    ['III. LANGKAH-LANGKAH PEMBELAJARAN','langkah'],
+    ['IV. ASESMEN PEMBELAJARAN','asesmen'],
+    ['LAMPIRAN','lampiran']
+  ];
+  const extra=[['Tujuan Pembelajaran','tp'],['Alur Tujuan Pembelajaran','atp'],['Pembelajaran Mendalam & Profil Lulusan','profil'],['Sarana, Prasarana & Lingkungan Belajar','sarpras'],['Model Pembelajaran','model']];
+  let body=`<div class="print-cover">
+    <div class="cover-spacer"></div><h1>${title}</h1><h2>${escapeHtmlForExport(state.subject)}</h2>
+    <p class="cover-grade">Kelas ${escapeHtmlForExport(state.grade)} / Fase ${escapeHtmlForExport(phase)} · Semester ${escapeHtmlForExport(state.semester)}</p>
+    <p class="cover-approach">Pendekatan Pembelajaran Mendalam (Deep Learning)</p>
+    <div class="cover-chapter">BAB / MATERI<br><strong>${escapeHtmlForExport(chapter)}</strong></div>
+    <div class="cover-meta"><p><b>Nama Sekolah:</b> ........................................................</p><p><b>Tahun Ajaran:</b> ${escapeHtmlForExport(state.academicYear)}</p><p><b>Rombel:</b> ${escapeHtmlForExport(state.section)}</p><p><b>Alokasi:</b> ${escapeHtmlForExport(allocation)} menit</p></div>
+  </div>`;
+  body+=`<section class="print-section"><h2>I. IDENTIFIKASI MODUL</h2>${formatSectionForPrint(sectionText('identitas'))}</section>`;
+  body+=`<section class="print-section"><h2>II. DESAIN PEMBELAJARAN</h2>
+    <h3>A. Capaian Pembelajaran</h3>${formatSectionForPrint(sectionText('cp'))}
+    <h3>B. Tujuan Pembelajaran</h3>${formatSectionForPrint(sectionText('tp'))}
+    <h3>C. Alur Tujuan Pembelajaran</h3>${formatSectionForPrint(sectionText('atp'))}
+    <h3>D. Pembelajaran Mendalam & Profil Lulusan</h3>${formatSectionForPrint(sectionText('profil'))}
+    <h3>E. Sarana, Prasarana & Lingkungan Belajar</h3>${formatSectionForPrint(sectionText('sarpras'))}
+    <h3>F. Model & Praktik Pedagogis</h3>${formatSectionForPrint(sectionText('model'))}
+  </section>`;
+  body+=`<section class="print-section"><h2>III. LANGKAH-LANGKAH PEMBELAJARAN</h2>${formatSectionForPrint(sectionText('langkah'))}</section>`;
+  body+=`<section class="print-section"><h2>IV. ASESMEN PEMBELAJARAN</h2>${formatSectionForPrint(sectionText('asesmen'))}</section>`;
+  body+=`<section class="print-section"><h2>LAMPIRAN</h2>${formatSectionForPrint(sectionText('lampiran'))}</section>`;
+  body+=buildSignaturePrintHTML();
+  return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>${title} - ${escapeHtmlForExport(chapter)}</title><style>
+@page{size:${paper.width} ${paper.height};margin:15mm 16mm 17mm 16mm;}
+*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:"Times New Roman",serif;color:#111;font-size:11pt;line-height:1.48;background:#fff}
+.print-cover{min-height:calc(${paper.height} - 32mm);display:flex;flex-direction:column;align-items:center;text-align:center;page-break-after:always;padding:20mm 10mm}.cover-spacer{height:24mm}.print-cover h1{font-size:24pt;margin:0 0 10pt;letter-spacing:1px}.print-cover h2{font-size:18pt;margin:0 0 12pt}.cover-grade{font-size:13pt;font-weight:bold}.cover-approach{font-style:italic;margin:8pt 0 35pt}.cover-chapter{border:1px solid #333;padding:15pt 28pt;min-width:70%;font-size:12pt}.cover-chapter strong{display:block;font-size:16pt;margin-top:7pt}.cover-meta{text-align:left;width:72%;margin-top:32pt}.cover-meta p{margin:5pt 0}
+.print-section{page-break-before:always}.print-section:first-of-type{page-break-before:auto}.print-section h2{font-size:15pt;text-align:center;margin:0 0 15pt;padding-bottom:6pt;border-bottom:1.5px solid #111}.print-section h3{font-size:12pt;margin:14pt 0 7pt}.print-section p{margin:0 0 7pt;text-align:justify}.print-section ul,.print-section ol{margin:4pt 0 9pt 20pt;padding:0}.print-section li{margin-bottom:4pt;text-align:justify}.print-section table{width:100%;border-collapse:collapse;margin:8pt 0 12pt;page-break-inside:auto}.print-section thead{display:table-header-group}.print-section tr{page-break-inside:avoid}.print-section th,.print-section td{border:1px solid #222;padding:5pt 6pt;vertical-align:top}.print-section th{font-weight:bold;text-align:center}.print-section img{max-width:100%;height:auto}.empty-print{font-style:italic}.page-break-before{page-break-before:always}.print-signature{min-height:80mm;padding-top:25mm}.signature-date{text-align:right;margin-bottom:15pt}.signature-grid{display:grid;grid-template-columns:1fr 1fr;gap:30mm;text-align:center}.signature-grid p{margin:3pt 0;text-align:center}.signature-space{height:28mm}.signature-grid b{text-decoration:underline}.print-footer{position:fixed;bottom:-10mm;left:0;right:0;text-align:center;font-size:8pt;color:#555}
+</style></head><body>${body}<div class="print-footer">Pusat Administrasi Guru · ${paper.name}</div></body></html>`;
 }
 
 function escapeHtmlForExport(value) {
